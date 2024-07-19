@@ -1,82 +1,170 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { FormEvent, useState } from 'react'
+import { useMutation, UseMutationResult } from '@tanstack/react-query'
 
-import { API_URL_BASE, API_KEY, API_METRIC, API_LANG } from '@/constants'
-
-import { ResearchingTheWeather } from '@/components/ResearchingTheWeather'
 import {
-    WeatherInformation,
-    WeatherInformationProps,
-} from '@/components/WeatherInformation'
-import { WeatherMessage } from '@/components/WeatherMessage'
+    getWeather,
+    getWeatherParams,
+    getWeatherResponse,
+} from '@/api/get-weather'
+
+import { Button } from '@/components/Button'
+import { AirQuality, AirQualitySkeleton } from '@/components/AirQuality'
+import { WeekWeather, WeekWeatherSkeleton } from '@/components/WeekWeather'
+import { SunTime, SunTimeSkeleton } from '@/components/SunTime'
+import {
+    TemperatureNow,
+    TemperatureNowSkeleton,
+} from '@/components/TemperatureNow'
+
+import { SearchClimateModal } from './modules/search-climate-modal'
 
 export default function Home() {
-    const [searchInput, setSearchInput] = useState<string>('')
-    const [openWeather, setOpenWeather] =
-        useState<WeatherInformationProps | null>(null)
-    const [weatherMessage, setWeatherMessage] = useState<string>('')
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false)
+    const [cityName, setCityName] = useState<string>('')
 
-    const handleSubmit = async (event: FormEvent) => {
+    const mutation: UseMutationResult<
+        getWeatherResponse,
+        Error,
+        getWeatherParams
+    > = useMutation({
+        mutationFn: getWeather,
+    })
+
+    function openSearchModal() {
+        setIsSearchModalOpen(true)
+    }
+
+    function closeSearchModal() {
+        setIsSearchModalOpen(false)
+    }
+
+    async function searchClimateCity(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
 
-        if (searchInput !== '') {
-            setWeatherMessage('Carregando...')
+        if (!cityName) {
+            return
+        }
 
-            const response = await fetch(
-                `${API_URL_BASE}?q=${encodeURI(
-                    searchInput,
-                )}&appid=${API_KEY}&units=${API_METRIC}&lang=${API_LANG}`,
-            )
-            const data = await response.json()
-
-            if (data.cod === 200) {
-                const dataOpenWeather = {
-                    name: data.name,
-                    country: data.sys.country,
-                    temp: data.main.temp,
-                    tempIcon: data.weather[0].icon,
-                    windSpeed: data.wind.speed,
-                    windAngle: data.wind.deg,
-                }
-
-                setOpenWeather(dataOpenWeather)
-                setWeatherMessage('')
-                setSearchInput('')
-            } else {
-                setOpenWeather(null)
-                setWeatherMessage('Não encontramos essa localização!')
-                setSearchInput('')
-            }
-        } else {
-            setOpenWeather(null)
+        try {
+            await mutation.mutateAsync({ cityName })
+        } catch (error) {
+            console.error(error)
+        } finally {
+            closeSearchModal()
         }
     }
 
+    // `https://openweathermap.org/img/wn/${tempIcon}.png`
+
     return (
-        <div className="w-full max-w-[1024px]">
-            <h1 className="font-bold text-white text-5xl text-center">
-                {' '}
-                Clima{' '}
-            </h1>
+        <>
+            <div className="z-10 fixed top-8 right-8">
+                <Button
+                    name="Consultar clima"
+                    type="button"
+                    onClick={openSearchModal}
+                />
+            </div>
 
-            <ResearchingTheWeather
-                onSubmit={handleSubmit}
-                onChange={setSearchInput}
-                value={searchInput}
-            />
+            <main className="w-full h-auto container mx-auto flex flex-col xl:flex-row gap-20">
+                <div className="flex-1">
+                    {mutation.isPending || !mutation.data ? (
+                        <TemperatureNowSkeleton />
+                    ) : (
+                        <TemperatureNow
+                            city={mutation.data.name}
+                            state={mutation.data?.sys.country}
+                            temperature={mutation.data.main.temp}
+                            maximumTemperature={mutation.data.main.temp_min}
+                            minimumTemperature={mutation.data.main.temp_max}
+                            infos={[
+                                {
+                                    type: 'rain',
+                                    value: mutation.data.main.humidity,
+                                },
+                                {
+                                    type: 'moisture',
+                                    value: mutation.data.main.humidity,
+                                },
+                                {
+                                    type: 'wind',
+                                    value: mutation.data.wind.speed,
+                                },
+                            ]}
+                        />
+                    )}
+                </div>
 
-            <WeatherInformation
-                defaultShow={!!openWeather}
-                name={openWeather ? openWeather.name : ''}
-                country={openWeather ? openWeather.country : ''}
-                temp={openWeather ? openWeather.temp : ''}
-                tempIcon={openWeather ? openWeather.tempIcon : ''}
-                windSpeed={openWeather ? openWeather.windSpeed : ''}
-                windAngle={openWeather ? openWeather.windAngle : 0}
-            />
+                <div className="flex-1 flex flex-col gap-8">
+                    <div className="flex  flex-col md:flex-row gap-8">
+                        {mutation.isPending || !mutation.data ? (
+                            <AirQualitySkeleton />
+                        ) : (
+                            <AirQuality
+                                qualitytext="Boa"
+                                qualityNumber={21}
+                                othersQuality={[
+                                    {
+                                        qualityNumber: 12.9,
+                                        qualitytext: 'PM2.5',
+                                    },
+                                    {
+                                        qualityNumber: 12.9,
+                                        qualitytext: 'PM2.5',
+                                    },
+                                    {
+                                        qualityNumber: 12.9,
+                                        qualitytext: 'PM2.5',
+                                    },
+                                    {
+                                        qualityNumber: 12.9,
+                                        qualitytext: 'PM2.5',
+                                    },
+                                    {
+                                        qualityNumber: 12.9,
+                                        qualitytext: 'PM2.5',
+                                    },
+                                    {
+                                        qualityNumber: 12.9,
+                                        qualitytext: 'PM2.5',
+                                    },
+                                ]}
+                            />
+                        )}
 
-            <WeatherMessage message={weatherMessage} />
-        </div>
+                        {mutation.isPending || !mutation.data ? (
+                            <SunTimeSkeleton />
+                        ) : (
+                            <SunTime />
+                        )}
+                    </div>
+
+                    {mutation.isPending || !mutation.data ? (
+                        <WeekWeatherSkeleton />
+                    ) : (
+                        <WeekWeather
+                            days={[
+                                {
+                                    day: 'segunda',
+                                    minimumTemperature: '12',
+                                    maximumTemperature: '20',
+                                    type: 'cloud',
+                                },
+                            ]}
+                        />
+                    )}
+                </div>
+            </main>
+
+            {isSearchModalOpen && (
+                <SearchClimateModal
+                    setCityName={setCityName}
+                    searchClimateCity={searchClimateCity}
+                    closeSearchClimateModal={closeSearchModal}
+                />
+            )}
+        </>
     )
 }
