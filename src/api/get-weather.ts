@@ -56,7 +56,7 @@ export async function getWeather({
     cityName,
 }: getWeatherParams): Promise<getWeatherResponse> {
     const response = await api.get<getWeatherResponse>(
-        `weather/?q=${encodeURI(cityName)}&appid=${API_KEY}&units=${API_METRIC}&lang=${API_LANG}`,
+        `weather/?q=${cityName}&appid=${API_KEY}&units=${API_METRIC}&lang=${API_LANG}`,
     )
 
     return response.data

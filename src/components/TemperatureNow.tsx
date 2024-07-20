@@ -1,4 +1,4 @@
-import { CloudyIcon } from './icons/CloudyIcon'
+import { CloudDoubleIcon } from './icons/CloudDoubleIcon'
 import { DropsIcon } from './icons/DropsIcon'
 import { PinIcon } from './icons/PinIcon'
 import { RainIcon } from './icons/RainIcon'
@@ -28,7 +28,7 @@ export function TemperatureNow({
     return (
         <div className="relative size-full p-10 space-y-10 rounded-xl bg-primary-700 flex flex-col items-center justify-between">
             <div className="absolute -top-14 -left-14 hidden sm:block">
-                <CloudyIcon width={150} height={150} />
+                <CloudDoubleIcon width={150} height={150} />
             </div>
 
             <div className="w-full flex items-center justify-end gap-2">
@@ -100,7 +100,7 @@ export function TemperatureNowSkeleton() {
     return (
         <div className="relative size-full p-10 space-y-10 rounded-xl bg-primary-700 flex flex-col items-center justify-between">
             <div className="absolute -top-14 -left-14 hidden sm:block">
-                <CloudyIcon width={150} height={150} />
+                <CloudDoubleIcon width={150} height={150} />
             </div>
 
             <div className="w-full flex items-center justify-end gap-2">

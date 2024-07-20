@@ -8,6 +8,11 @@ import {
     getWeatherParams,
     getWeatherResponse,
 } from '@/api/get-weather'
+import {
+    getForecastResponse,
+    getForecastParams,
+    getForecast,
+} from '@/api/get-forecast'
 
 import { Button } from '@/components/Button'
 import { AirQuality, AirQualitySkeleton } from '@/components/AirQuality'
@@ -19,17 +24,50 @@ import {
 } from '@/components/TemperatureNow'
 
 import { SearchClimateModal } from './modules/search-climate-modal'
+import {
+    getAirPollutionResponse,
+    getAirPollutionParams,
+    getAirPollution,
+} from '@/api/get-air-pollution'
 
 export default function Home() {
     const [isSearchModalOpen, setIsSearchModalOpen] = useState<boolean>(false)
     const [cityName, setCityName] = useState<string>('')
 
-    const mutation: UseMutationResult<
+    const {
+        mutateAsync: mutateWeatherAsync,
+        data: weatherData,
+        isPending: isWeatherPending,
+    }: UseMutationResult<
         getWeatherResponse,
         Error,
         getWeatherParams
     > = useMutation({
         mutationFn: getWeather,
+    })
+
+    const {
+        mutateAsync: mutateForecastAsync,
+        data: forecastData,
+        isPending: isForecastPending,
+    }: UseMutationResult<
+        getForecastResponse,
+        Error,
+        getForecastParams
+    > = useMutation({
+        mutationFn: getForecast,
+    })
+
+    const {
+        mutateAsync: mutateAirPollutionAsync,
+        data: airPollutionData,
+        isPending: isAirPollutionPending,
+    }: UseMutationResult<
+        getAirPollutionResponse,
+        Error,
+        getAirPollutionParams
+    > = useMutation({
+        mutationFn: getAirPollution,
     })
 
     function openSearchModal() {
@@ -48,15 +86,18 @@ export default function Home() {
         }
 
         try {
-            await mutation.mutateAsync({ cityName })
+            await mutateWeatherAsync({ cityName })
+            await mutateForecastAsync({ cityName })
+            await mutateAirPollutionAsync({
+                latitude: -46.7406,
+                longitude: -3.3642,
+            })
         } catch (error) {
             console.error(error)
         } finally {
             closeSearchModal()
         }
     }
-
-    // `https://openweathermap.org/img/wn/${tempIcon}.png`
 
     return (
         <>
@@ -70,27 +111,27 @@ export default function Home() {
 
             <main className="w-full h-auto container mx-auto flex flex-col xl:flex-row gap-20">
                 <div className="flex-1">
-                    {mutation.isPending || !mutation.data ? (
+                    {isWeatherPending || !weatherData ? (
                         <TemperatureNowSkeleton />
                     ) : (
                         <TemperatureNow
-                            city={mutation.data.name}
-                            state={mutation.data?.sys.country}
-                            temperature={mutation.data.main.temp}
-                            maximumTemperature={mutation.data.main.temp_min}
-                            minimumTemperature={mutation.data.main.temp_max}
+                            city={weatherData.name}
+                            state={weatherData?.sys.country}
+                            temperature={weatherData.main.temp}
+                            maximumTemperature={weatherData.main.temp_min}
+                            minimumTemperature={weatherData.main.temp_max}
                             infos={[
                                 {
                                     type: 'rain',
-                                    value: mutation.data.main.humidity,
+                                    value: weatherData.clouds.all,
                                 },
                                 {
                                     type: 'moisture',
-                                    value: mutation.data.main.humidity,
+                                    value: weatherData.main.humidity,
                                 },
                                 {
                                     type: 'wind',
-                                    value: mutation.data.wind.speed,
+                                    value: weatherData.wind.speed,
                                 },
                             ]}
                         />
@@ -99,61 +140,24 @@ export default function Home() {
 
                 <div className="flex-1 flex flex-col gap-8">
                     <div className="flex  flex-col md:flex-row gap-8">
-                        {mutation.isPending || !mutation.data ? (
+                        {isAirPollutionPending || !airPollutionData ? (
                             <AirQualitySkeleton />
                         ) : (
-                            <AirQuality
-                                qualitytext="Boa"
-                                qualityNumber={21}
-                                othersQuality={[
-                                    {
-                                        qualityNumber: 12.9,
-                                        qualitytext: 'PM2.5',
-                                    },
-                                    {
-                                        qualityNumber: 12.9,
-                                        qualitytext: 'PM2.5',
-                                    },
-                                    {
-                                        qualityNumber: 12.9,
-                                        qualitytext: 'PM2.5',
-                                    },
-                                    {
-                                        qualityNumber: 12.9,
-                                        qualitytext: 'PM2.5',
-                                    },
-                                    {
-                                        qualityNumber: 12.9,
-                                        qualitytext: 'PM2.5',
-                                    },
-                                    {
-                                        qualityNumber: 12.9,
-                                        qualitytext: 'PM2.5',
-                                    },
-                                ]}
-                            />
+                            <AirQuality list={airPollutionData.list} />
                         )}
 
-                        {mutation.isPending || !mutation.data ? (
+                        {/* TODO: falta esse aqui ainda */}
+                        {isAirPollutionPending || !airPollutionData ? (
                             <SunTimeSkeleton />
                         ) : (
                             <SunTime />
                         )}
                     </div>
 
-                    {mutation.isPending || !mutation.data ? (
+                    {isForecastPending || !forecastData ? (
                         <WeekWeatherSkeleton />
                     ) : (
-                        <WeekWeather
-                            days={[
-                                {
-                                    day: 'segunda',
-                                    minimumTemperature: '12',
-                                    maximumTemperature: '20',
-                                    type: 'cloud',
-                                },
-                            ]}
-                        />
+                        <WeekWeather days={forecastData.list} />
                     )}
                 </div>
             </main>
@@ -168,3 +172,6 @@ export default function Home() {
         </>
     )
 }
+
+// https://api.openweathermap.org/data/2.5/forecast/daily?q=caieiras&cnt=7&appid=eeaccb51452695fb012d18076727e28b&units=metric&lang=pt_br
+// https://api.openweathermap.org/data/2.5/forecast?q=caieiras&cnt=7&appid=eeaccb51452695fb012d18076727e28b&units=metric&lang=pt_br

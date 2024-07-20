@@ -1,6 +1,6 @@
 import { ComponentPropsWithoutRef } from 'react'
 
-export function CloudyIcon(props: ComponentPropsWithoutRef<'svg'>) {
+export function CloudDoubleIcon(props: ComponentPropsWithoutRef<'svg'>) {
     return (
         <svg
             width={60}
