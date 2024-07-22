@@ -61,5 +61,3 @@ export async function getWeather({
 
     return response.data
 }
-
-// https://api.openweathermap.org/data/2.5/weather?q=caieiras&appid=eeaccb51452695fb012d18076727e28b&units=metric&lang=pt_br

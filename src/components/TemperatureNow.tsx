@@ -31,10 +31,10 @@ export function TemperatureNow({
                 <CloudDoubleIcon width={150} height={150} />
             </div>
 
-            <div className="w-full flex items-center justify-end gap-2">
+            <div className="w-fit flex items-center justify-end gap-2 px-2 py-1 rounded bg-primary-500/50 ml-auto">
                 <PinIcon />
 
-                <h6 className="text-primary-200 text-base">
+                <h6 className="text-primary-200 text-xl">
                     {`${city}, ${state}`}
                 </h6>
             </div>

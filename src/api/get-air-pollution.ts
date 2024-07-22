@@ -41,5 +41,3 @@ export async function getAirPollution({
 
     return response.data
 }
-
-// http://api.openweathermap.org/data/2.5/air_pollution?lat=-3.3642&lon=-46.7406&appid=eeaccb51452695fb012d18076727e28b&units=metric&lang=pt_br

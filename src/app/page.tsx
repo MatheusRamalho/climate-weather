@@ -86,12 +86,22 @@ export default function Home() {
         }
 
         try {
+            const weatherResponse = await mutateWeatherAsync({ cityName })
+
             await mutateWeatherAsync({ cityName })
+
             await mutateForecastAsync({ cityName })
-            await mutateAirPollutionAsync({
-                latitude: -46.7406,
-                longitude: -3.3642,
-            })
+
+            if (
+                weatherResponse &&
+                weatherResponse.coord.lat &&
+                weatherResponse.coord.lon
+            ) {
+                await mutateAirPollutionAsync({
+                    latitude: weatherResponse.coord.lat,
+                    longitude: weatherResponse.coord.lon,
+                })
+            }
         } catch (error) {
             console.error(error)
         } finally {
@@ -140,17 +150,21 @@ export default function Home() {
 
                 <div className="flex-1 flex flex-col gap-8">
                     <div className="flex  flex-col md:flex-row gap-8">
+                        {isWeatherPending || !weatherData ? (
+                            <SunTimeSkeleton />
+                        ) : (
+                            <SunTime
+                                description={weatherData.weather[0].description}
+                                main={weatherData.weather[0].main}
+                                icon={weatherData.weather[0].icon}
+                                feelsLike={weatherData.main.feels_like}
+                            />
+                        )}
+
                         {isAirPollutionPending || !airPollutionData ? (
                             <AirQualitySkeleton />
                         ) : (
                             <AirQuality list={airPollutionData.list} />
-                        )}
-
-                        {/* TODO: falta esse aqui ainda */}
-                        {isAirPollutionPending || !airPollutionData ? (
-                            <SunTimeSkeleton />
-                        ) : (
-                            <SunTime />
                         )}
                     </div>
 
@@ -172,6 +186,3 @@ export default function Home() {
         </>
     )
 }
-
-// https://api.openweathermap.org/data/2.5/forecast/daily?q=caieiras&cnt=7&appid=eeaccb51452695fb012d18076727e28b&units=metric&lang=pt_br
-// https://api.openweathermap.org/data/2.5/forecast?q=caieiras&cnt=7&appid=eeaccb51452695fb012d18076727e28b&units=metric&lang=pt_br
