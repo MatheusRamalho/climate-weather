@@ -41,7 +41,7 @@ export function TemperatureNow({
 
             <div className="w-full flex items-center justify-center">
                 <div className="flex items-center justify-center flex-col gap-1">
-                    <span className="text-8xl text-white font-bold">
+                    <span className="text-6xl md:text-8xl text-white font-bold">
                         {temperature}º
                     </span>
 
